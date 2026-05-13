@@ -6,13 +6,9 @@ pipeline {
     }
 
     stages {
-        
+
         stage('Clone Repo') {
             steps {
-                // Delete the existing directory if it exists
-                sh 'rm -rf docker-deplo'
-                
-                // Clone the repository
                 sh 'git clone https://github.com/Dodrup/docker-deplo.git'
             }
         }
@@ -20,6 +16,15 @@ pipeline {
         stage('Install Dependencies & Test') {
             steps {
                 sh 'pip3 install flask pytest'
+            }
+        }
+
+        stage('Authenticate Docker') {
+            steps {
+                // Authenticate Docker to avoid rate limits on pulling images
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                }
             }
         }
 
