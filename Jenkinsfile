@@ -9,6 +9,10 @@ pipeline {
         
         stage('Clone Repo') {
             steps {
+                // Delete the existing directory if it exists
+                sh 'rm -rf docker-deplo'
+                
+                // Clone the repository
                 sh 'git clone https://github.com/Dodrup/docker-deplo.git'
             }
         }
@@ -16,7 +20,6 @@ pipeline {
         stage('Install Dependencies & Test') {
             steps {
                 sh 'pip3 install flask pytest'
-                
             }
         }
 
