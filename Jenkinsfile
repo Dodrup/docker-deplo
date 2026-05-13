@@ -9,15 +9,12 @@ pipeline {
 
         stage('Clone Repo') {
             steps {
-                // Clean up the repository directory if it exists
                 script {
                     if (fileExists('docker-deplo')) {
                         echo 'Cleaning up existing repo directory'
                         sh 'rm -rf docker-deplo'
                     }
                 }
-                
-                // Clone the repository
                 echo 'Cloning the repository...'
                 sh 'git clone https://github.com/Dodrup/docker-deplo.git'
             }
@@ -27,8 +24,6 @@ pipeline {
             steps {
                 echo 'Installing dependencies and running tests...'
                 sh 'pip3 install flask pytest'
-                // You can also add pytest run command here if needed, for example:
-                // sh 'pytest tests/'
             }
         }
 
@@ -37,7 +32,8 @@ pipeline {
                 echo 'Authenticating to Docker Hub...'
                 // Authenticate Docker to avoid rate limits on pulling images
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    // Pass password via stdin securely without interpolation
+                    sh "echo \$PASS | docker login -u \$USER --password-stdin"
                 }
             }
         }
@@ -53,7 +49,7 @@ pipeline {
             steps {
                 echo 'Pushing Docker image to Docker Hub...'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                    sh "echo $PASS | docker login -u $USER --password-stdin"
+                    sh "echo \$PASS | docker login -u \$USER --password-stdin"
                     sh "docker push $DOCKER_IMAGE:${BUILD_NUMBER}"
                 }
             }
